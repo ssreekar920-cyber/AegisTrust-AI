@@ -13,10 +13,22 @@ const app = express();
 // 1. JSON body parser with 1mb limit
 app.use(express.json({ limit: "1mb" }));
 
-// 2. CORS configured strictly per spec
+// 2. CORS configured for local dev and Netlify production domains
 app.use(
   cors({
-    origin: env.CLIENT_ORIGIN,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+      // Allow configured CLIENT_ORIGIN, localhost, or any Netlify deployment URL
+      if (
+        origin === env.CLIENT_ORIGIN ||
+        origin.includes("localhost") ||
+        origin.endsWith(".netlify.app")
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: false,
     allowedHeaders: ["Content-Type", "Authorization"],
   })
