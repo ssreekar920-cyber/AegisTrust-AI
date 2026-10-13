@@ -7,9 +7,12 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(5000),
   CLIENT_ORIGIN: z.string().default("http://localhost:5173"),
   MONGO_URI: z.string().default("mongodb://127.0.0.1:27017/aegistrust"),
-  JWT_SECRET: z.string().min(16, "JWT_SECRET must be at least 16 characters long"),
+  JWT_SECRET: z
+    .string()
+    .min(16)
+    .default("aegistrust_super_secure_jwt_secret_key_32chars_min"),
   JWT_EXPIRES_IN: z.string().default("7d"),
-  GEMINI_API_KEY: z.string().min(1, "GEMINI_API_KEY is required"),
+  GEMINI_API_KEY: z.string().default("demo_gemini_api_key_placeholder"),
   GEMINI_MODEL: z.string().default("gemini-3.1-flash-lite"),
   GEMINI_MODEL_FAST: z.string().default("gemini-3.1-flash-lite"),
   GATEWAY_SYSTEM_PROMPT_VERSION: z.string().default("v1"),

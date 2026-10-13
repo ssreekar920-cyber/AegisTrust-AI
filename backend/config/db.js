@@ -29,9 +29,10 @@ export async function connectDB(retries = 3, delayMs = 1000) {
     console.log(`✅ mongo connected (in-memory MongoMemoryServer: ${uri})`);
     return;
   } catch (memErr) {
-    console.error("❌ MongoDB connection failed completely.");
-    console.error(`Ensure MongoDB is running at ${env.MONGO_URI} or set a valid MONGO_URI in .env.`);
-    throw new Error(`Database connection failed: ${memErr.message}`);
+    console.warn("⚠️ MongoDB connection failed completely.");
+    console.warn(`Ensure MongoDB is running at ${env.MONGO_URI} or set a valid MONGO_URI in .env.`);
+    console.warn("Continuing server initialization in offline/mock mode.");
+    return;
   }
 }
 

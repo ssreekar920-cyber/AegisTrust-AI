@@ -39,7 +39,16 @@ app.use(morgan("tiny"));
 
 import { testSupabaseConnection, isSupabaseConfigured } from "./config/supabase.js";
 
-// 4. Public Health Check endpoint (no auth)
+// 4. Root & Public Health Check endpoints
+app.get("/", (req, res) => {
+  res.status(200).json({
+    ok: true,
+    name: "AegisTrust AI Security Gateway",
+    status: "active",
+    healthCheck: "/api/health",
+  });
+});
+
 app.get("/api/health", getHealth);
 
 // 4b. Supabase Database Status endpoint (no auth)

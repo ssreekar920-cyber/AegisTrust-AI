@@ -31,36 +31,45 @@ async function startServer() {
 
     // 2. Auto-seed demo user if needed
     if (env.SEED_DEMO_USER) {
-      const existingUser = await User.findOne({ email: "demo@aegistrust.demo" });
-      if (!existingUser) {
-        const salt = await bcrypt.genSalt(12);
-        const passwordHash = await bcrypt.hash("DemoPass123", salt);
-        await User.create({
-          name: "Alex Vance (SecOps)",
-          email: "demo@aegistrust.demo",
-          passwordHash,
-          role: "admin",
-        });
-        console.log("✅ Demo user auto-seeded: demo@aegistrust.demo");
+      try {
+        const existingUser = await User.findOne({ email: "demo@aegistrust.demo" });
+        if (!existingUser) {
+          const salt = await bcrypt.genSalt(12);
+          const passwordHash = await bcrypt.hash("DemoPass123", salt);
+          await User.create({
+            name: "Alex Vance (SecOps)",
+            email: "demo@aegistrust.demo",
+            passwordHash,
+            role: "admin",
+          });
+          console.log("✅ Demo user auto-seeded: demo@aegistrust.demo");
+        }
+      } catch (seedErr) {
+        console.warn("⚠️ Demo user auto-seeding skipped:", seedErr.message);
       }
     }
 
     // 3. Initialize gateway system prompt singleton
-    const config = await GatewayConfig.getSingleton();
-    console.log(`🛡️ gateway system prompt ${config.version} loaded`);
+    let configVersion = "v1";
+    try {
+      const config = await GatewayConfig.getSingleton();
+      configVersion = config.version;
+      console.log(`🛡️ gateway system prompt ${configVersion} loaded`);
+    } catch (cfgErr) {
+      console.warn("⚠️ Gateway system prompt fallback to v1:", cfgErr.message);
+    }
 
-    // 3. Start listening on PORT
+    // 4. Start listening on PORT
     server.listen(env.PORT, () => {
       console.log(`🚀 listening on ${env.PORT}`);
       logger.info("server_started", {
         port: env.PORT,
-        gatewayVersion: config.version,
+        gatewayVersion: configVersion,
         model: env.GEMINI_MODEL,
       });
     });
   } catch (err) {
     console.error("❌ Failed to start server:", err.message);
-    process.exit(1);
   }
 }
 

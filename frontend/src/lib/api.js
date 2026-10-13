@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const rawBase = import.meta.env.VITE_API_URL || "https://aegis-trust-ai-pg38.vercel.app";
+const API_BASE_URL = rawBase.replace(/\/api\/?$/, "").replace(/\/$/, "");
 
 export async function apiRequest(endpoint, options = {}) {
   const token = localStorage.getItem("at_token");
@@ -8,7 +9,8 @@ export async function apiRequest(endpoint, options = {}) {
     ...(options.headers || {}),
   };
 
-  const url = `${API_BASE_URL}${endpoint}`;
+  const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE_URL}${cleanEndpoint}`;
   try {
     const response = await fetch(url, {
       ...options,
