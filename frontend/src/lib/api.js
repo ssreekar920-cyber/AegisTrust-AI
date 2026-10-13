@@ -1,4 +1,4 @@
-const rawBase = import.meta.env.VITE_API_URL || "https://aegis-trust-ai-pg38.vercel.app";
+const rawBase = import.meta.env.VITE_API_URL || "https://aegis-trust-ai-pg38-qsen0cf47-team-stars.vercel.app";
 const API_BASE_URL = rawBase.replace(/\/api\/?$/, "").replace(/\/$/, "");
 
 export async function apiRequest(endpoint, options = {}) {
