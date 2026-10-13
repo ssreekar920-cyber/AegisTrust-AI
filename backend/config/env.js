@@ -30,6 +30,9 @@ const envSchema = z.object({
     .string()
     .default("true")
     .transform((val) => val === "true" || val === "1"),
+  SUPABASE_URL: z.string().optional(),
+  SUPABASE_KEY: z.string().optional(),
+  DB_PROVIDER: z.string().default("auto"), // 'auto', 'supabase', or 'mongodb'
 });
 
 const parsed = envSchema.safeParse(process.env);

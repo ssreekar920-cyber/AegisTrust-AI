@@ -8,12 +8,26 @@ import logger from "./utils/logger.js";
 import bcrypt from "bcryptjs";
 import User from "./models/user.model.js";
 
+import { isSupabaseConfigured, testSupabaseConnection } from "./config/supabase.js";
+
 const server = http.createServer(app);
 
 async function startServer() {
   try {
-    // 1. Connect database
+    // 1. Connect database (MongoDB primary/fallback)
     await connectDB();
+
+    // 1b. Check Supabase connection if configured
+    if (isSupabaseConfigured()) {
+      const sbStatus = await testSupabaseConnection();
+      if (sbStatus.connected) {
+        console.log(`⚡ Supabase PostgreSQL connected! (${sbStatus.message})`);
+      } else {
+        console.warn(`⚠️ Supabase connection status: ${sbStatus.error || sbStatus.message}`);
+      }
+    } else {
+      console.log(`ℹ️ Supabase not configured in backend/.env — ready for SUPABASE_URL & SUPABASE_KEY.`);
+    }
 
     // 2. Auto-seed demo user if needed
     if (env.SEED_DEMO_USER) {

@@ -25,8 +25,17 @@ app.use(
 // 3. Request logger (never logs bodies)
 app.use(morgan("tiny"));
 
+import { testSupabaseConnection, isSupabaseConfigured } from "./config/supabase.js";
+
 // 4. Public Health Check endpoint (no auth)
 app.get("/api/health", getHealth);
+
+// 4b. Supabase Database Status endpoint (no auth)
+app.get("/api/supabase/status", async (req, res) => {
+  const configured = isSupabaseConfigured();
+  const status = await testSupabaseConnection();
+  res.json({ configured, ...status });
+});
 
 // 5. Auth routes
 app.use("/api/auth", authRoutes);
