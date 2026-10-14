@@ -36,7 +36,7 @@ export function StatusBar() {
         if (isMounted) {
           setUnreachable(true);
           if (!hasWarnedRef.current) {
-            toast.error("Gateway unreachable. Please verify backend service on port 5000.");
+            toast.error("Gateway unreachable. Please verify backend connection.");
             hasWarnedRef.current = true;
           }
         }
