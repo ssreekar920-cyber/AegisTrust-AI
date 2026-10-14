@@ -6,7 +6,7 @@ import env from "../config/env.js";
 function generateToken(user) {
   return jwt.sign(
     {
-      sub: user._id.toString(),
+      sub: user.id || user._id,
       role: user.role,
     },
     env.JWT_SECRET,
@@ -44,7 +44,7 @@ export async function register(req, res, next) {
     return res.status(201).json({
       token,
       user: {
-        id: user._id.toString(),
+        id: user.id || user._id,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -86,7 +86,7 @@ export async function login(req, res, next) {
     return res.status(200).json({
       token,
       user: {
-        id: user._id.toString(),
+        id: user.id || user._id,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -112,7 +112,7 @@ export async function getMe(req, res, next) {
 
     return res.status(200).json({
       user: {
-        id: user._id.toString(),
+        id: user.id || user._id,
         name: user.name,
         email: user.email,
         role: user.role,

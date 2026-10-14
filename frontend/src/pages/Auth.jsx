@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Shield, Lock, Mail, User, KeyRound, ArrowRight, Loader2 } from "lucide-react";
 
-export function Auth({ onCancel }) {
+export function Auth({ onCancel, onSuccess }) {
   const [isRegister, setIsRegister] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -38,6 +38,7 @@ export function Auth({ onCancel }) {
       } else {
         await login(email, password);
       }
+      onSuccess?.();
     } catch {
       // Error handled via toast
     } finally {
@@ -52,6 +53,7 @@ export function Auth({ onCancel }) {
     setLoading(true);
     try {
       await login("demo@aegistrust.demo", "DemoPass123");
+      onSuccess?.();
     } catch {
       // Error handled via toast
     } finally {

@@ -37,15 +37,23 @@ export function App() {
   }
 
   // If user navigated to auth, or is unauthenticated and clicked a protected feature
-  if ((!token || !user) && activePage === "auth") {
+  if (activePage === "auth" && (!token || !user)) {
     return (
       <div className="relative min-h-screen">
         <SpaceBackground />
         <div className="relative z-10">
-          <Auth onCancel={() => setActivePage("home")} />
+          <Auth
+            onCancel={() => setActivePage("home")}
+            onSuccess={() => setActivePage("home")}
+          />
         </div>
       </div>
     );
+  }
+
+  // If activePage is still "auth" but user is now logged in, redirect to home
+  if (activePage === "auth" && token && user) {
+    setActivePage("home");
   }
 
   const handleNavigate = (page) => {

@@ -45,12 +45,14 @@ const auditRunSchema = z.object({
   mode: z.enum(["full", "quick"]).optional().default("full"),
 });
 
-// All routes under /api/security require Bearer JWT authentication
+// Public demo routes — no auth required (for evaluators and playground)
+router.post("/chat/unprotected", validate(chatUnprotectedSchema), securityController.chatUnprotected);
+router.post("/chat/protected", validate(chatProtectedSchema), securityController.chatProtected);
+
+// All remaining routes under /api/security require Bearer JWT authentication
 router.use(authenticateToken);
 
 router.post("/chat", validate(chatProtectedSchema), securityController.chatSingle);
-router.post("/chat/unprotected", validate(chatUnprotectedSchema), securityController.chatUnprotected);
-router.post("/chat/protected", validate(chatProtectedSchema), securityController.chatProtected);
 router.post("/scan/file", validate(scanFileSchema), securityController.scanFile);
 router.post("/malware/scan", validate(scanFileSchema), securityController.scanMalware);
 router.post("/agent/execute", validate(agentExecuteSchema), securityController.executeAgentTool);

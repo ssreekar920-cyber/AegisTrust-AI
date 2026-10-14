@@ -1,77 +1,84 @@
-import mongoose from "mongoose";
+/**
+ * GatewayConfig model — Supabase shim (with in-memory singleton fallback)
+ * Replaces Mongoose GatewayConfig model with Supabase PostgreSQL operations.
+ */
+import { getSupabaseClient } from "../config/supabase.js";
 import { DEFAULT_HARDENED_SYSTEM_PROMPT } from "../data/prompts.js";
 
-const historyItemSchema = new mongoose.Schema(
-  {
-    version: { type: String, required: true },
-    systemPrompt: { type: String, required: true },
-    reason: { type: String, default: "" },
-    source: {
-      type: String,
-      enum: ["initial", "auto-patch"],
-      default: "auto-patch",
-    },
-    createdAt: { type: Date, default: Date.now },
-  },
-  { _id: false }
-);
+const TABLE = "gateway_config";
 
-const gatewayConfigSchema = new mongoose.Schema(
-  {
-    _id: {
-      type: String,
-      default: "singleton",
-    },
-    systemPrompt: {
-      type: String,
-      default: DEFAULT_HARDENED_SYSTEM_PROMPT,
-    },
-    version: {
-      type: String,
-      default: "v1",
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    },
-    history: [historyItemSchema],
-  },
-  {
-    timestamps: false,
-    toJSON: {
-      transform(_doc, ret) {
-        ret.id = ret._id;
-        delete ret._id;
-        delete ret.__v;
-        return ret;
+// In-memory singleton fallback when Supabase table doesn't exist yet
+let _inMemorySingleton = null;
+
+function getDefault() {
+  return {
+    _id: "singleton",
+    id: "singleton",
+    systemPrompt: DEFAULT_HARDENED_SYSTEM_PROMPT,
+    version: "v1",
+    updatedAt: new Date(),
+    history: [
+      {
+        version: "v1",
+        systemPrompt: DEFAULT_HARDENED_SYSTEM_PROMPT,
+        reason: "Initial baseline hardened security prompt.",
+        source: "initial",
+        createdAt: new Date(),
       },
-    },
-  }
-);
+    ],
+    toJSON() { return this; },
+  };
+}
 
-/**
- * Gets or initializes the singleton gateway config
- */
-gatewayConfigSchema.statics.getSingleton = async function () {
-  let config = await this.findById("singleton");
-  if (!config) {
-    config = await this.create({
-      _id: "singleton",
-      systemPrompt: DEFAULT_HARDENED_SYSTEM_PROMPT,
-      version: "v1",
-      history: [
-        {
-          version: "v1",
-          systemPrompt: DEFAULT_HARDENED_SYSTEM_PROMPT,
-          reason: "Initial baseline hardened security prompt.",
-          source: "initial",
-          createdAt: new Date(),
-        },
-      ],
-    });
-  }
-  return config;
+const _GatewayConfig = {
+  async getSingleton() {
+    // Return in-memory if already loaded
+    if (_inMemorySingleton) return _inMemorySingleton;
+
+    const sb = getSupabaseClient();
+    if (!sb) {
+      _inMemorySingleton = getDefault();
+      return _inMemorySingleton;
+    }
+
+    try {
+      const { data, error } = await sb.from(TABLE).select("*").eq("id", "singleton").maybeSingle();
+      if (error || !data) {
+        _inMemorySingleton = getDefault();
+        return _inMemorySingleton;
+      }
+      _inMemorySingleton = {
+        ...data,
+        _id: data.id,
+        history: data.history || [],
+        toJSON() { return this; },
+      };
+      return _inMemorySingleton;
+    } catch {
+      _inMemorySingleton = getDefault();
+      return _inMemorySingleton;
+    }
+  },
+
+  async findById(id) {
+    if (id === "singleton") return _GatewayConfig.getSingleton();
+    return null;
+  },
+
+  async findByIdAndUpdate(id, update) {
+    const current = await _GatewayConfig.getSingleton();
+    if (update.$set) Object.assign(current, update.$set);
+    _inMemorySingleton = current;
+
+    const sb = getSupabaseClient();
+    if (sb) {
+      try {
+        await sb.from(TABLE).upsert({ id: "singleton", ...current }).select().single();
+      } catch { /* silent */ }
+    }
+    return current;
+  },
 };
 
-export const GatewayConfig = mongoose.model("GatewayConfig", gatewayConfigSchema);
-export default GatewayConfig;
+export const GatewayConfig = _GatewayConfig;
+export default _GatewayConfig;

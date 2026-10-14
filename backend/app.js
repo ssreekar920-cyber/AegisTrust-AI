@@ -19,11 +19,12 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, Postman, server-to-server)
       if (!origin) return callback(null, true);
-      // Allow configured CLIENT_ORIGIN, localhost, or any Netlify deployment URL
+      // Allow configured CLIENT_ORIGIN, localhost, or Vercel/Netlify deployments
       if (
         origin === env.CLIENT_ORIGIN ||
         origin.includes("localhost") ||
-        origin.endsWith(".netlify.app")
+        origin.endsWith(".netlify.app") ||
+        origin.endsWith(".vercel.app")
       ) {
         return callback(null, true);
       }
