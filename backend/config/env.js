@@ -32,8 +32,14 @@ const envSchema = z.object({
     .string()
     .default("false")
     .transform((val) => val === "true" || val === "1"),
-  SUPABASE_URL: z.string().optional(),
-  SUPABASE_KEY: z.string().optional(),
+  SUPABASE_URL: z
+    .string()
+    .default("https://rbwmistkotxxqncetcnj.supabase.co"),
+  SUPABASE_KEY: z
+    .string()
+    .default(
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJid21pc3Rrb3R4eHFuY2V0Y25qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4NTg2OTksImV4cCI6MjEwNzQzNDY5OX0.9ePB9OGXZs10cpZvbHKyA-lOBnH3xPplgAr1tnff6vI"
+    ),
   DB_PROVIDER: z.string().default("supabase"),
 });
 

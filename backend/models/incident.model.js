@@ -1,3 +1,4 @@
+
 /**
  * Incident model — Supabase shim
  * Replaces Mongoose Incident model with Supabase PostgreSQL operations.
