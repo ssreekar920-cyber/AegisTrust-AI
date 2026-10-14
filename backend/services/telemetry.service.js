@@ -130,22 +130,24 @@ export async function getCategories() {
     improper_output: { label: "Improper Output", owaspId: "LLM05" },
   };
 
-  const agg = await ThreatLog.aggregate([
-    { $match: { attackType: { $ne: "benign" } } },
-    { $group: { _id: "$attackType", count: { $sum: 1 } } },
-    { $sort: { count: -1 } },
-  ]);
+  const allThreats = await ThreatLog.find();
+  const counts = {};
+  for (const t of allThreats) {
+    if (t.attackType && t.attackType !== "benign") {
+      counts[t.attackType] = (counts[t.attackType] || 0) + 1;
+    }
+  }
 
   const results = [];
-  for (const item of agg) {
-    const info = categoryLabels[item._id] || {
-      label: item._id,
+  for (const [attackType, count] of Object.entries(counts)) {
+    const info = categoryLabels[attackType] || {
+      label: attackType,
       owaspId: "LLMXX",
     };
     results.push({
       owaspId: info.owaspId,
       label: info.label,
-      count: item.count,
+      count,
     });
   }
 
